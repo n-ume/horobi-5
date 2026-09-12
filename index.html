@@ -1,4 +1,5 @@
 <title>BEYOND DECAY</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%2321282a'/%3E%3Ctext x='32' y='36' font-size='38' text-anchor='middle' font-family='Georgia,serif' fill='%2383ab9b'%3E%E2%9D%96%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,6 +145,43 @@
   }
   .en-toggle:hover{border-color:var(--accent); color:var(--ink)}
   .en-toggle.active{background:var(--accent-wash); border-color:var(--accent); color:var(--ink)}
+
+  .nav-toggle{
+    display:none;
+    flex:0 0 auto;
+    align-self:center;
+    margin:0 .3rem 0 .7rem;
+    padding:.5rem .8rem;
+    border:1px solid var(--line);
+    border-radius:.4rem;
+    background:transparent;
+    color:var(--ink-soft);
+    font-size:1.05rem;
+    line-height:1;
+    cursor:pointer;
+  }
+  @media (max-width:640px){
+    .jump ul{
+      display:none;
+      position:absolute;
+      top:100%;
+      left:0;
+      right:0;
+      flex-direction:column;
+      gap:0;
+      background:var(--ground);
+      border-bottom:1px solid var(--line-soft);
+      box-shadow:0 10px 20px rgba(0,0,0,.15);
+      padding:.4rem 0;
+      max-height:75vh;
+      overflow-y:auto;
+      overflow-x:visible;
+    }
+    .jump.open ul{display:flex}
+    .jump a{padding:1rem 1.2rem; border-bottom:none; font-size:1rem}
+    .nav-toggle{display:inline-flex; align-items:center; justify-content:center}
+    .en-toggle{margin:0 .5rem 0 0; padding:.4rem .65rem; font-size:.78rem}
+  }
 
   /* ---- masthead ---- */
   .mast{padding:3.6rem 0 2.6rem}
@@ -507,6 +545,7 @@
 </style>
 
 <nav class="jump" aria-label="セクション / Sections">
+  <button class="nav-toggle" id="navToggle" type="button" aria-label="メニューを開く">☰</button>
   <ul>
     <li><a href="#intro">Intro</a></li>
     <li><a href="#ai-art">AI Art</a></li>
@@ -865,6 +904,20 @@
     }, { rootMargin: '-42% 0px -52% 0px' });
 
     document.querySelectorAll('.sec').forEach(function (s) { io.observe(s); });
+  })();
+</script>
+
+<script>
+  (function () {
+    var jump = document.querySelector('.jump');
+    var navToggle = document.getElementById('navToggle');
+    if (!jump || !navToggle) return;
+    navToggle.addEventListener('click', function () {
+      jump.classList.toggle('open');
+    });
+    jump.querySelectorAll('ul a').forEach(function (a) {
+      a.addEventListener('click', function () { jump.classList.remove('open'); });
+    });
   })();
 </script>
 
