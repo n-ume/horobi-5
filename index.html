@@ -124,6 +124,25 @@
   }
   .jump a:hover{color:var(--ink)}
   .jump a.active{color:var(--accent); border-bottom-color:var(--accent)}
+  .en-toggle{
+    flex:0 0 auto;
+    align-self:center;
+    margin:0 .9rem;
+    padding:.4rem .85rem;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:"Newsreader","Times New Roman",serif;
+    font-style:italic;
+    font-size:.82rem;
+    letter-spacing:0;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .en-toggle:hover{border-color:var(--accent); color:var(--ink)}
+  .en-toggle.active{background:var(--accent-wash); border-color:var(--accent); color:var(--ink)}
 
   /* ---- masthead ---- */
   .mast{padding:3.6rem 0 2.6rem}
@@ -312,6 +331,8 @@
   .en-block p{margin:0 0 1rem}
   .en-block p:last-child{margin-bottom:0}
   .en-block .stanza{color:var(--ink-soft)}
+  .en-block{display:none}
+  body.show-en .en-block{display:block}
 
   .caesura{
     text-align:center;
@@ -384,7 +405,7 @@
   /* ---- works index ---- */
   .index{
     list-style:none;
-    margin:.4rem 0 0;
+    margin:2.1rem 0 0;
     padding:0;
     border-top:1px solid var(--line);
   }
@@ -497,6 +518,7 @@
     <li><a href="#objects">Fragments</a></li>
     <li><a href="#ume">UME</a></li>
   </ul>
+  <button class="en-toggle" id="enToggle" type="button">English</button>
 </nav>
 
 <div class="wrap">
@@ -704,18 +726,6 @@
         <span class="ja">作品</span>
         <span class="en">Works</span>
       </h2>
-      <ol class="index">
-        <li><span class="no">01</span><span class="t-jp">留守番</span><span class="t-en">After the Residents</span><span class="t-size">F4 · 33.3 × 24.2 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
-        <li><span class="no">02</span><span class="t-jp">娯楽装置</span><span class="t-en">Leisure Machine</span><span class="t-size">F3 · 27.3 × 22.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
-        <li><span class="no">03</span><span class="t-jp">生活壁</span><span class="t-en">Habitation Wall</span><span class="t-size">F4 · 33.3 × 24.2 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
-        <li><span class="no">04</span><span class="t-jp">住居紀</span><span class="t-en">Habitation Era</span><span class="t-size">F8 · 45.5 × 38.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
-        <li><span class="no">05</span><span class="t-jp">都市島</span><span class="t-en">Urban Island</span><span class="t-size">F8 · 45.5 × 38.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
-        <li><span class="no">06</span><span class="t-jp">終着、水中</span><span class="t-en">Terminal: Underwater</span><span class="t-size">F3 · 27.3 × 22.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
-        <li><span class="no">07</span><span class="t-jp">遊興塔</span><span class="t-en">Leisure Tower</span><span class="t-size">F3 · 27.3 × 22.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
-        <li><span class="no">08</span><span class="t-jp">軌道住区</span><span class="t-en">Transit Habitat</span><span class="t-size">F4 · 33.3 × 24.2 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
-        <li><span class="no">09</span><span class="t-jp">水線住宅</span><span class="t-en">Waterline Residence</span><span class="t-size">F3 · 27.3 × 22.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
-      </ol>
-
       <figure class="wallmap">
         <svg viewBox="0 0 1905 2150" role="img" aria-label="会場壁面のレイアウト図。番号は列ごとに上から下へ、左列・中央列・右列の順で上のリストに対応します。" preserveAspectRatio="xMidYMid meet">
           <rect class="wall" x="8" y="8" width="1889" height="2134"/>
@@ -750,6 +760,18 @@
           </g>
         </svg>
       </figure>
+
+      <ol class="index">
+        <li><span class="no">01</span><span class="t-jp">留守番</span><span class="t-en">After the Residents</span><span class="t-size">F4 · 33.3 × 24.2 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
+        <li><span class="no">02</span><span class="t-jp">娯楽装置</span><span class="t-en">Leisure Machine</span><span class="t-size">F3 · 27.3 × 22.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
+        <li><span class="no">03</span><span class="t-jp">生活壁</span><span class="t-en">Habitation Wall</span><span class="t-size">F4 · 33.3 × 24.2 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
+        <li><span class="no">04</span><span class="t-jp">住居紀</span><span class="t-en">Habitation Era</span><span class="t-size">F8 · 45.5 × 38.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
+        <li><span class="no">05</span><span class="t-jp">都市島</span><span class="t-en">Urban Island</span><span class="t-size">F8 · 45.5 × 38.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
+        <li><span class="no">06</span><span class="t-jp">終着、水中</span><span class="t-en">Terminal: Underwater</span><span class="t-size">F3 · 27.3 × 22.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
+        <li><span class="no">07</span><span class="t-jp">遊興塔</span><span class="t-en">Leisure Tower</span><span class="t-size">F3 · 27.3 × 22.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
+        <li><span class="no">08</span><span class="t-jp">軌道住区</span><span class="t-en">Transit Habitat</span><span class="t-size">F4 · 33.3 × 24.2 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
+        <li><span class="no">09</span><span class="t-jp">水線住宅</span><span class="t-en">Waterline Residence</span><span class="t-size">F3 · 27.3 × 22.0 cm · キャンバスプリント（麻100%）/ Canvas print (100% linen)</span></li>
+      </ol>
 
     </section>
 
@@ -842,6 +864,26 @@
     }, { rootMargin: '-42% 0px -52% 0px' });
 
     document.querySelectorAll('.sec').forEach(function (s) { io.observe(s); });
+  })();
+</script>
+
+<script>
+  (function () {
+    var btn = document.getElementById('enToggle');
+    if (!btn) return;
+    var KEY = 'bd-show-en';
+    function apply(show) {
+      document.body.classList.toggle('show-en', show);
+      btn.classList.toggle('active', show);
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (e) {}
+    apply(saved === '1');
+    btn.addEventListener('click', function () {
+      var next = !document.body.classList.contains('show-en');
+      apply(next);
+      try { localStorage.setItem(KEY, next ? '1' : '0'); } catch (e) {}
+    });
   })();
 </script>
 
