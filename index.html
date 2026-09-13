@@ -928,6 +928,7 @@
 <script type="module">
   import * as THREE from 'three';
   import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
   (function () {
     var container = document.getElementById('world3d');
@@ -936,26 +937,42 @@
     var w = container.clientWidth || 260, h = container.clientHeight || 260;
 
     var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2.5));
     renderer.setSize(w, h);
     renderer.setClearColor(0x000000, 0);
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
     var scene = new THREE.Scene();
     var groundVar = getComputedStyle(document.documentElement).getPropertyValue('--ground').trim() || '#e6e6e1';
     scene.fog = new THREE.Fog(new THREE.Color(groundVar), 45, 80);
 
+    // neutral studio environment so PBR materials get soft reflections instead of flat matte color
+    var pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
     var camera = new THREE.PerspectiveCamera(34, w / h, 0.1, 200);
     camera.position.set(15, 11.6, 24);
 
-    scene.add(new THREE.AmbientLight(0xaab2ac, 0.7));
-    var key = new THREE.DirectionalLight(0xfff3df, 1.4);
+    scene.add(new THREE.AmbientLight(0xaab2ac, 0.45));
+    var key = new THREE.DirectionalLight(0xfff3df, 1.6);
     key.position.set(18, 26, 14);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.left = -14;
+    key.shadow.camera.right = 14;
+    key.shadow.camera.top = 14;
+    key.shadow.camera.bottom = -14;
+    key.shadow.camera.near = 5;
+    key.shadow.camera.far = 55;
+    key.shadow.bias = -0.0015;
+    key.shadow.radius = 2.5;
     scene.add(key);
-    var rim = new THREE.PointLight(0x6fae97, 0.7, 60);
+    var rim = new THREE.PointLight(0x6fae97, 0.6, 60);
     rim.position.set(-14, 4, -12);
     scene.add(rim);
 
@@ -963,9 +980,24 @@
     var world = new THREE.Group();
     scene.add(world);
 
+    var maxAniso = renderer.capabilities.getMaxAnisotropy();
     new GLTFLoader().load(
       'urban_pier.glb',
-      function (gltf) { world.add(gltf.scene); },
+      function (gltf) {
+        gltf.scene.traverse(function (obj) {
+          if (!obj.isMesh) return;
+          obj.castShadow = true;
+          obj.receiveShadow = true;
+          var mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+          mats.forEach(function (m) {
+            if (!m) return;
+            ['map', 'roughnessMap', 'metalnessMap', 'normalMap', 'aoMap', 'emissiveMap'].forEach(function (slot) {
+              if (m[slot]) { m[slot].anisotropy = maxAniso; m[slot].needsUpdate = true; }
+            });
+          });
+        });
+        world.add(gltf.scene);
+      },
       undefined,
       function (err) { console.error('urban_pier.glb load failed', err); }
     );
