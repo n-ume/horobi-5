@@ -276,6 +276,31 @@
   }
   .mast .pull{margin:1.8rem 0 0}
 
+  /* ---- small draggable world (WebGL, three.js + GLB model) ---- */
+  .world3d{
+    position:relative;
+    width:260px;
+    max-width:70vw;
+    height:260px;
+    margin:2.1rem auto 0;
+    cursor:grab;
+    touch-action:none;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .world3d.dragging{cursor:grabbing}
+  .world3d canvas{display:block; width:100%; height:100%}
+  .world3d-hint{
+    display:block;
+    text-align:center;
+    margin-top:.6rem;
+    font-family:"Newsreader","Times New Roman",serif;
+    font-style:italic;
+    font-size:.78rem;
+    letter-spacing:.03em;
+    color:var(--ink-faint);
+  }
+
   /* ---- sections ---- */
   .sec{
     padding:3.1rem 0;
@@ -542,6 +567,8 @@
     <p class="eyebrow">作品解説 &nbsp;/&nbsp; Exhibition Notes</p>
     <h1>Beyond Decay</h1>
     <p class="jp-title">滅びの先に</p>
+    <div class="world3d" id="world3d" role="img" aria-label="この世界のミニチュア。ドラッグして回せます。"></div>
+    <span class="world3d-hint">drag to turn the world</span>
     <div class="pull">
       <b>成長だけが、未来ではない。<br>滅びの先に、次の世界が巡る。</b>
       <span>Growth was never the whole story.<br>Beyond decay, the world begins, once more.</span>
@@ -911,5 +938,106 @@
       apply(next);
       try { localStorage.setItem(KEY, next ? '1' : '0'); } catch (e) {}
     });
+  })();
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.134.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+  (function () {
+    var container = document.getElementById('world3d');
+    if (!container) return;
+
+    var w = container.clientWidth || 260, h = container.clientHeight || 260;
+
+    var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(w, h);
+    renderer.setClearColor(0x000000, 0);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    container.appendChild(renderer.domElement);
+
+    var scene = new THREE.Scene();
+    var groundVar = getComputedStyle(document.documentElement).getPropertyValue('--ground').trim() || '#e6e6e1';
+    scene.fog = new THREE.Fog(new THREE.Color(groundVar), 45, 80);
+
+    var camera = new THREE.PerspectiveCamera(34, w / h, 0.1, 200);
+    camera.position.set(15, 11.6, 24);
+
+    scene.add(new THREE.AmbientLight(0xaab2ac, 0.7));
+    var key = new THREE.DirectionalLight(0xfff3df, 1.4);
+    key.position.set(18, 26, 14);
+    scene.add(key);
+    var rim = new THREE.PointLight(0x6fae97, 0.7, 60);
+    rim.position.set(-14, 4, -12);
+    scene.add(rim);
+
+    var target = new THREE.Vector3(0, 5.5, 0);
+    var world = new THREE.Group();
+    scene.add(world);
+
+    new GLTFLoader().load(
+      'urban_pier.glb',
+      function (gltf) { world.add(gltf.scene); },
+      undefined,
+      function (err) { console.error('urban_pier.glb load failed', err); }
+    );
+
+    var radius = camera.position.clone().sub(target).length();
+    var theta = Math.atan2(camera.position.x - target.x, camera.position.z - target.z);
+    var phi = Math.acos(Math.max(-1, Math.min(1, (camera.position.y - target.y) / radius)));
+
+    function applyCamera() {
+      camera.position.set(
+        target.x + radius * Math.sin(phi) * Math.sin(theta),
+        target.y + radius * Math.cos(phi),
+        target.z + radius * Math.sin(phi) * Math.cos(theta)
+      );
+      camera.lookAt(target);
+    }
+
+    var dragging = false, lastX = 0, lastY = 0;
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var autoRotate = !reduceMotion;
+
+    function start(x, y) { dragging = true; autoRotate = false; lastX = x; lastY = y; container.classList.add('dragging'); }
+    function move(x, y) {
+      if (!dragging) return;
+      var dx = x - lastX, dy = y - lastY;
+      theta -= dx * 0.006;
+      phi = Math.max(0.35, Math.min(1.45, phi - dy * 0.006));
+      lastX = x; lastY = y;
+      applyCamera();
+    }
+    function end() { dragging = false; container.classList.remove('dragging'); }
+
+    container.addEventListener('pointerdown', function (e) { try { container.setPointerCapture(e.pointerId); } catch (err) {} start(e.clientX, e.clientY); });
+    container.addEventListener('pointermove', function (e) { move(e.clientX, e.clientY); });
+    container.addEventListener('pointerup', end);
+    container.addEventListener('pointercancel', end);
+
+    window.addEventListener('resize', function () {
+      var nw = container.clientWidth || w, nh = container.clientHeight || h;
+      renderer.setSize(nw, nh);
+      camera.aspect = nw / nh;
+      camera.updateProjectionMatrix();
+    });
+
+    (function tick() {
+      if (autoRotate && !dragging) { theta += 0.0025; applyCamera(); }
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    })();
   })();
 </script>
