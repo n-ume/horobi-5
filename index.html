@@ -1007,6 +1007,9 @@
       camera.lookAt(target);
     }
 
+    var MIN_R = 11, MAX_R = 58;
+    function clampRadius(r) { return Math.max(MIN_R, Math.min(MAX_R, r)); }
+
     var dragging = false, lastX = 0, lastY = 0;
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var autoRotate = !reduceMotion;
@@ -1022,10 +1025,53 @@
     }
     function end() { dragging = false; container.classList.remove('dragging'); }
 
-    container.addEventListener('pointerdown', function (e) { try { container.setPointerCapture(e.pointerId); } catch (err) {} start(e.clientX, e.clientY); });
-    container.addEventListener('pointermove', function (e) { move(e.clientX, e.clientY); });
-    container.addEventListener('pointerup', end);
-    container.addEventListener('pointercancel', end);
+    /* mouse wheel / trackpad zoom */
+    container.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      autoRotate = false;
+      radius = clampRadius(radius * (1 + e.deltaY * 0.0015));
+      applyCamera();
+    }, { passive: false });
+
+    /* single-finger drag to rotate, two-finger pinch to zoom */
+    var pointers = new Map();
+    var pinchStartDist = 0, pinchStartRadius = radius;
+    function pointerDist(a, b) { var dx = a.x - b.x, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); }
+
+    container.addEventListener('pointerdown', function (e) {
+      try { container.setPointerCapture(e.pointerId); } catch (err) {}
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2) {
+        dragging = false;
+        autoRotate = false;
+        var pts = Array.from(pointers.values());
+        pinchStartDist = pointerDist(pts[0], pts[1]);
+        pinchStartRadius = radius;
+      } else if (pointers.size === 1) {
+        start(e.clientX, e.clientY);
+      }
+    });
+    container.addEventListener('pointermove', function (e) {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 2) {
+        var pts = Array.from(pointers.values());
+        var d = pointerDist(pts[0], pts[1]);
+        if (pinchStartDist > 0) {
+          radius = clampRadius(pinchStartRadius * (pinchStartDist / d));
+          applyCamera();
+        }
+      } else {
+        move(e.clientX, e.clientY);
+      }
+    });
+    function releasePointer(e) {
+      pointers.delete(e.pointerId);
+      pinchStartDist = 0;
+      if (pointers.size === 0) end();
+    }
+    container.addEventListener('pointerup', releasePointer);
+    container.addEventListener('pointercancel', releasePointer);
 
     window.addEventListener('resize', function () {
       var nw = container.clientWidth || w, nh = container.clientHeight || h;
